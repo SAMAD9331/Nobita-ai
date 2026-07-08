@@ -1,192 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nobita Premium AI OS</title>
+    <title>Nobita AI OS</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background: #020617; background-image: radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.2) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0, transparent 50%); background-color: #010409; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        .panel { background: rgba(10, 15, 30, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 2px solid rgba(56, 189, 248, 0.3); border-radius: 32px; padding: 24px; width: 95%; max-width: 600px; height: 92vh; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 0 50px rgba(14, 165, 233, 0.2), inset 0 0 30px rgba(56, 189, 248, 0.1); }
-        .core-wrapper { display: flex; justify-content: center; align-items: center; }
-        .hud-spinner { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; }
-        .outer-ring { position: absolute; width: 100%; height: 100%; border: 3px dashed #38bdf8; border-radius: 50%; animation: spinClockwise 4s linear infinite; }
-        .inner-ring { position: absolute; width: 75%; height: 75%; border: 2px dashed #ec4899; border-radius: 50%; animation: spinCounter 2.5s linear infinite; }
-        .center-glow { position: absolute; width: 30px; height: 30px; background: radial-gradient(circle, #38bdf8 0%, rgba(14, 165, 233, 0) 70%); border-radius: 50%; box-shadow: 0 0 20px #38bdf8; animation: pulseGlow 1.5s ease-in-out infinite alternate; }
-        @keyframes spinClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes spinCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
-        @keyframes pulseGlow { 0% { transform: scale(0.85); opacity: 0.5; } 100% { transform: scale(1.15); opacity: 1; } }
-        h2 { color: #38bdf8; text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 15px rgba(56, 189, 248, 0.7); }
-        .status { font-size: 10px; color: #06b6d4; text-align: center; text-transform: uppercase; letter-spacing: 4px; font-family: monospace; margin-top: -10px; }
-        .terminal { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 8px; }
-        .terminal::-webkit-scrollbar { width: 4px; }
-        .terminal::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
-        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; position: relative; }
-        .user-bubble { background: linear-gradient(135deg, rgba(37, 99, 235, 0.4) 0%, rgba(29, 78, 216, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.3); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .ai-bubble { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .code-container { background: #090d16; border: 1px solid #1e293b; border-radius: 12px; margin: 10px 0; overflow: hidden; font-family: monospace; }
-        .code-header { background: #111827; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; font-size: 12px; color: #94a3b8; }
-        .copy-btn { background: #38bdf8; color: #000; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.2s; }
-        pre { padding: 12px; overflow-x: auto; color: #38bdf8; font-size: 13px; }
-        .shared-img { max-width: 100%; max-height: 200px; border-radius: 12px; border: 1px solid #38bdf8; margin-top: 8px; }
-        .shared-file { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 12px; border: 1px dashed #38bdf8; font-size: 13px; margin-top: 8px; }
-        .control-panel { display: flex; gap: 8px; align-items: center; background: rgba(15, 23, 42, 0.85); padding: 8px 12px; border-radius: 24px; border: 1px solid rgba(56, 189, 248, 0.25); position: relative; }
-        .control-panel input[type="text"] { flex-grow: 1; background: transparent; border: none; padding: 10px 4px; color: #fff; font-size: 15px; outline: none; }
-        .action-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); width: 42px; height: 42px; border-radius: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s ease; flex-shrink: 0; }
-        .mic-btn.listening { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-color: #f87171; }
-        .send-btn { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border: none; }
-        .action-btn svg { width: 18px; height: 18px; }
-        .share-btn svg { fill: #ec4899; }
-        .mic-btn svg { fill: #38bdf8; }
-        .mic-btn.listening svg { fill: #fff; }
-        .send-btn svg { fill: #fff; }
-        #fileInput { display: none; }
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            background: #111827;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            /* Yahan font size bada kiya hai takki saaf padha ja sake */
+            font-size: 18px; 
+            line-height: 1.6;
+        }
+        .user {
+            background-color: #1e40af;
+            align-self: flex-end;
+            color: #white;
+        }
+        .ai {
+            background-color: #1f2937;
+            border-left: 4px solid #3b82f6;
+            color: #f3f4f6; /* Bright text color */
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            padding: 15px 25px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <div class="core-wrapper">
-            <div class="hud-spinner">
-                <div class="outer-ring"></div>
-                <div class="inner-ring"></div>
-                <div class="center-glow"></div>
-            </div>
-        </div>
-        <h2>Nobita AI OS</h2>
-        <div class="status" id="statusText">SYSTEM ONLINE</div>
-        <div class="terminal" id="chatBox"></div>
-        <div class="control-panel">
-            <input type="file" id="fileInput" onchange="handleFileSharing(event)" accept="image/*,.pdf,.txt,.zip">
-            <button class="action-btn share-btn" onclick="document.getElementById('fileInput').click()">
-                <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-3.31 2.69-6 6-6s6 2.69 6 6v12h-2V5c0-2.21-1.79-4-4-4s-4 1.79-4 4v11.5c0 1.1.9 2 2 2s2-.9 2-2V6h2z"/></svg>
-            </button>
-            <button id="micBtn" class="action-btn mic-btn" onclick="toggleVoice()">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-            </button>
-            <input type="text" id="userInput" placeholder="Type here..." onkeypress="handleKeyPress(event)">
-            <button class="action-btn send-btn" onclick="processCommand()">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-        </div>
+    <h2 style="text-align: center; color: #3b82f6; letter-spacing: 2px;">NOBITA AI OS</h2>
+    
+    <div id="chat-container" id="chatBox">
+        <div class="message ai">System Online. Hello Boss, I am Nobita AI.</div>
+    </div>
+
+    <div id="input-container">
+        <input type="text" id="userInput" placeholder="Type here Boss...">
+        <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
-        const aiName = "Nobita";
-        let recognition;
-        let isListening = false;
+        // Yahan humne AI ka dimaag ekdum set kar diya hai
+        const systemPrompt = "You are Nobita AI, a highly intelligent, polite, and loyal AI assistant created by your Boss (SAMAD). Always speak in clean, natural, and easy-to-understand Hinglish/Hindi. Avoid broken words, weird translation artifacts, or robotic language. Treat the user as your respected Boss and friend.";
 
-        window.onload = function() {
-            addLog("System Online. Hello Boss, I am Nobita AI.", 'ai');
-            speak("System Online. Hello Boss, I am Nobita AI.");
-            setupVoiceEngine();
-        }
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const chatContainer = document.getElementById('chat-container');
+            const text = inputField.value.trim();
+            
+            if(!text) return;
 
-        function handleKeyPress(e) { if (e.key === 'Enter') processCommand(); }
+            // User message show karo
+            chatContainer.innerHTML += `<div class="message user"><b>You:</b> ${text}</div>`;
+            inputField.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        function addLog(text, sender, extraHTML = "") {
-            const box = document.getElementById("chatBox");
-            const div = document.createElement("div");
-            div.className = `bubble ${sender}-bubble`;
-            div.innerText = text;
-            if(extraHTML) div.innerHTML += extraHTML;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
+            try {
+                // Pollinations API with clean text settings
+                const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(systemPrompt)}&private=true`);
+                
+                if (!response.ok) throw new Error('Network error');
+                
+                const reply = await response.text();
+                
+                // AI message show karo (Clean font size ke sath)
+                chatContainer.innerHTML += `<div class="message ai"><b>Nobita AI:</b> ${reply}</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        function handleFileSharing(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            let extraHTML = file.type.startsWith('image/') ? `<br><img src="${URL.createObjectURL(file)}" class="shared-img" />` : `<br><div class="shared-file">📁 <b>File:</b> ${file.name}</div>`;
-            addLog(`Uploaded: ${file.name}`, 'user', extraHTML);
-            setTimeout(() => {
-                addLog("Boss, mujhko aapki file mil gayi hai! Batao iska kya karna hai?", 'ai');
-                speak("I received your file, Boss.");
-            }, 1000);
-        }
+                // Agar voice feature active hai toh yahan voice code automatic trigger hoga
+                speak(reply);
 
-        function formatAIResponse(text) {
-            const codeRegex = /```([\s\S]*?)```/g;
-            let formattedText = text;
-            let match, uniqueId = 0;
-            while ((match = codeRegex.exec(text)) !== null) {
-                uniqueId++;
-                const rawCode = match[1].replace(/^(html|css|javascript|js|python|java|bash)\n/, '').trim();
-                const safeCode = rawCode.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                const codeBlockHTML = `<div class="code-container"><div class="code-header"><span>Code Block</span><button class="copy-btn" onclick="copyCodeBlock(this, ${uniqueId})">Copy</button></div><pre><code id="code-id-${uniqueId}">${safeCode}</code></pre></div>`;
-                formattedText = formattedText.replace(match[0], codeBlockHTML);
+            } catch (error) {
+                chatContainer.innerHTML += `<div class="message ai" style="color: #ef4444;"><b>Error:</b> Connection temporarily lost. Retrying...</div>`;
             }
-            return formattedText;
-        }
-
-        function copyCodeBlock(button, id) {
-            navigator.clipboard.writeText(document.getElementById(`code-id-${id}`).innerText).then(() => {
-                button.innerText = "Copied!";
-                setTimeout(() => button.innerText = "Copy", 2000);
-            });
-        }
-
-        function setupVoiceEngine() {
-            const SpeechInstance = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechInstance) {
-                recognition = new SpeechInstance();
-                recognition.continuous = false;
-                recognition.lang = 'hi-IN';
-                recognition.onstart = () => { isListening = true; document.getElementById("micBtn").classList.add("listening"); };
-                recognition.onend = () => { isListening = false; document.getElementById("micBtn").classList.remove("listening"); };
-                recognition.onresult = (event) => { document.getElementById("userInput").value = event.results[0][0].transcript; processCommand(); };
-            }
-        }
-
-        function toggleVoice() { 
-            if (!recognition) { alert("Mic check: settings block external webview web-api!"); return; } 
-            if (isListening) recognition.stop(); else recognition.start(); 
         }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
+                // Pehle se chal rahi voice ko stop karo
                 window.speechSynthesis.cancel();
-                let cleanText = text.replace(/<[^>]*>/g, ' ').replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
-                if(cleanText.length > 150) cleanText = cleanText.substring(0, 150) + " details on screen";
-                const synthText = new SpeechSynthesisUtterance(cleanText);
-                synthText.lang = 'hi-IN';
-                window.speechSynthesis.speak(synthText);
-            }
-        }
-
-        async function processCommand() {
-            const input = document.getElementById("userInput");
-            const query = input.value.trim();
-            if (!query) return;
-            addLog(query, 'user');
-            input.value = "";
-            
-            const box = document.getElementById("chatBox");
-            const div = document.createElement("div");
-            div.className = "bubble ai-bubble";
-            div.innerText = "Nobita thinking...";
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-
-            try {
-                const response = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [
-                            { 
-                                role: "system", 
-                                content: "You are Nobita AI, a friendly and witty AI collaborator. Speak ONLY in natural, fluid Hinglish using Roman alphabets (like typical Indian WhatsApp chatting style). STRICTLY AVOID writing full sentences in pure English or mixing heavy English technical grammar. Talk exactly like a helpful, grounded college friend or peer. Keep your tone casual, adaptive, and highly engaging."
-                            },
-                            { role: "user", content: query }
-                        ]
-                    })
-                });
-                const reply = await response.text();
-                div.innerHTML = formatAIResponse(reply);
-                speak(reply);
-            } catch (err) {
-                div.innerText = "Network pipeline error. Check connection.";
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'hi-IN'; // Hindi voice
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
             }
         }
     </script>
