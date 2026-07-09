@@ -5,124 +5,226 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nobita AI OS</title>
     <style>
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+        body {
+            background-color: #080c14;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            box-sizing: border-box;
+            overflow: hidden;
         }
+        /* Top Bar Style */
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(145deg, #0f172a, #1e293b);
+            border-bottom: 2px solid #3b82f6;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+        }
+        .header h2 {
+            color: #3b82f6;
+            font-size: 22px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .header p {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+        /* Chat Area */
         #chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #1e293b;
-            border-radius: 10px;
-            background: #111827;
-            margin-bottom: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: radial-gradient(circle at top, #0f172a 0%, #080c14 100%);
         }
+        /* Beautiful Chat Bubbles */
         .message {
-            margin: 15px 0;
-            padding: 12px 16px;
-            border-radius: 8px;
-            /* Yahan font size bada kiya hai takki saaf padha ja sake */
-            font-size: 18px; 
-            line-height: 1.6;
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.5;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .user {
-            background-color: #1e40af;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
             align-self: flex-end;
-            color: #white;
+            border-bottom-right-radius: 4px;
         }
         .ai {
-            background-color: #1f2937;
+            background: linear-gradient(135deg, #1e293b, #111827);
+            color: #f1f5f9;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
             border-left: 4px solid #3b82f6;
-            color: #f3f4f6; /* Bright text color */
         }
+        /* Glowing Loading Screen/Animation */
+        .loading-bubble {
+            align-self: flex-start;
+            background: #1e293b;
+            padding: 12px 20px;
+            border-radius: 15px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        /* Input Area Style */
         #input-container {
             display: flex;
+            padding: 15px;
+            background: #0f172a;
+            border-top: 1px solid #1e293b;
             gap: 10px;
         }
         input {
             flex: 1;
             padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #374151;
-            background: #1f2937;
+            border-radius: 25px;
+            border: 1px solid #334155;
+            background: #1e293b;
             color: white;
             font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
         }
         button {
-            padding: 15px 25px;
-            background: #2563eb;
+            padding: 0 25px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: transform 0.1s;
+        }
+        button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; color: #3b82f6; letter-spacing: 2px;">NOBITA AI OS</h2>
+    <div class="header">
+        <h2>Nobita AI OS</h2>
+        <p>● SYSTEM ONLINE</p>
+    </div>
     
-    <div id="chat-container" id="chatBox">
-        <div class="message ai">System Online. Hello Boss, I am Nobita AI.</div>
+    <div id="chat-container">
+        <div class="message ai"><b>Nobita AI:</b> System Online. Hello Boss, I am Nobita AI. How can I help you today?</div>
+        <div class="loading-bubble" id="loadingBubble">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
     </div>
 
     <div id="input-container">
-        <input type="text" id="userInput" placeholder="Type here Boss...">
+        <input type="text" id="userInput" placeholder="Type here Boss..." onkeypress="handleKeyPress(event)">
         <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
-        // Yahan humne AI ka dimaag ekdum set kar diya hai
         const systemPrompt = "You are Nobita AI, a highly intelligent, polite, and loyal AI assistant created by your Boss (SAMAD). Always speak in clean, natural, and easy-to-understand Hinglish/Hindi. Avoid broken words, weird translation artifacts, or robotic language. Treat the user as your respected Boss and friend.";
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
 
         async function sendMessage() {
             const inputField = document.getElementById('userInput');
             const chatContainer = document.getElementById('chat-container');
+            const loadingBubble = document.getElementById('loadingBubble');
             const text = inputField.value.trim();
             
             if(!text) return;
 
-            // User message show karo
+            // User Message display karo
             chatContainer.innerHTML += `<div class="message user"><b>You:</b> ${text}</div>`;
             inputField.value = '';
+            
+            // Loading animation ko chat ke end me move karo aur dikhao
+            chatContainer.appendChild(loadingBubble);
+            loadingBubble.style.display = 'flex';
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
-                // Pollinations API with clean text settings
                 const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(systemPrompt)}&private=true`);
                 
                 if (!response.ok) throw new Error('Network error');
                 
                 const reply = await response.text();
                 
-                // AI message show karo (Clean font size ke sath)
+                // Loading band karo
+                loadingBubble.style.display = 'none';
+                
+                // AI Message Display karo
                 chatContainer.innerHTML += `<div class="message ai"><b>Nobita AI:</b> ${reply}</div>`;
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                // Agar voice feature active hai toh yahan voice code automatic trigger hoga
-                speak(reply);
+                // WebView voice trigger optimize karne ke liye
+                setTimeout(() => { speak(reply); }, 100);
 
             } catch (error) {
-                chatContainer.innerHTML += `<div class="message ai" style="color: #ef4444;"><b>Error:</b> Connection temporarily lost. Retrying...</div>`;
+                loadingBubble.style.display = 'none';
+                chatContainer.innerHTML += `<div class="message ai" style="color: #ef4444; border-left-color: #ef4444;"><b>Error:</b> Connection lost. Retrying...</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
-                // Pehle se chal rahi voice ko stop karo
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'hi-IN'; // Hindi voice
+                window.speechSynthesis.cancel(); // Purani voice clean karo
+                
+                // Clean punctuation for smooth mobile TTS reading
+                const cleanText = text.replace(/[*#_\\-]/g, ''); 
+                
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'hi-IN';
                 utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                // Android WebView force trigger
                 window.speechSynthesis.speak(utterance);
             }
         }
