@@ -78,6 +78,23 @@
             border-bottom-left-radius: 4px;
             border-left: 4px solid #3b82f6;
         }
+        /* File Preview styling in chat */
+        .file-shared {
+            background: #1e293b;
+            border: 1px dashed #3b82f6;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .file-shared img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+        }
         /* Glowing Loading Screen/Animation */
         .loading-bubble {
             align-self: flex-start;
@@ -108,6 +125,7 @@
             background: #0f172a;
             border-top: 1px solid #1e293b;
             gap: 10px;
+            align-items: center;
         }
         input {
             flex: 1;
@@ -124,8 +142,26 @@
             border-color: #3b82f6;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
         }
-        button {
+        /* File Upload Hidden Input but custom button */
+        .file-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #3b82f6;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 22px;
+            transition: all 0.2s;
+        }
+        .file-btn:active { transform: scale(0.9); }
+        
+        button.send-btn {
             padding: 0 25px;
+            height: 50px;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             border: none;
@@ -136,7 +172,7 @@
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
             transition: transform 0.1s;
         }
-        button:active {
+        button.send-btn:active {
             transform: scale(0.95);
         }
     </style>
@@ -150,6 +186,7 @@
     
     <div id="chat-container">
         <div class="message ai"><b>Nobita AI:</b> System Online. Hello Boss, I am Nobita AI. How can I help you today?</div>
+        
         <div class="loading-bubble" id="loadingBubble">
             <div class="dot"></div>
             <div class="dot"></div>
@@ -158,8 +195,11 @@
     </div>
 
     <div id="input-container">
+        <input type="file" id="fileInput" style="display: none;" onchange="handleFileShare(event)">
+        <div class="file-btn" onclick="document.getElementById('fileInput').click()">📎</div>
+        
         <input type="text" id="userInput" placeholder="Type here Boss..." onkeypress="handleKeyPress(event)">
-        <button onclick="sendMessage()">Send</button>
+        <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
 
     <script>
@@ -179,12 +219,11 @@
             
             if(!text) return;
 
-            // User Message display karo
-            chatContainer.innerHTML += `<div class="message user"><b>You:</b> ${text}</div>`;
-            inputField.value = '';
+            // UI Fix: History safe rakhne ke liye insertAdjacentHTML use kiya hai
+            const userDiv = `<div class="message user"><b>You:</b> ${text}</div>`;
+            loadingBubble.insertAdjacentHTML('beforebegin', userDiv);
             
-            // Loading animation ko chat ke end me move karo aur dikhao
-            chatContainer.appendChild(loadingBubble);
+            inputField.value = '';
             loadingBubble.style.display = 'flex';
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
@@ -195,36 +234,71 @@
                 
                 const reply = await response.text();
                 
-                // Loading band karo
                 loadingBubble.style.display = 'none';
                 
-                // AI Message Display karo
-                chatContainer.innerHTML += `<div class="message ai"><b>Nobita AI:</b> ${reply}</div>`;
+                const aiDiv = `<div class="message ai"><b>Nobita AI:</b> ${reply}</div>`;
+                loadingBubble.insertAdjacentHTML('beforebegin', aiDiv);
+                
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                // WebView voice trigger optimize karne ke liye
                 setTimeout(() => { speak(reply); }, 100);
 
             } catch (error) {
                 loadingBubble.style.display = 'none';
-                chatContainer.innerHTML += `<div class="message ai" style="color: #ef4444; border-left-color: #ef4444;"><b>Error:</b> Connection lost. Retrying...</div>`;
+                const errorDiv = `<div class="message ai" style="color: #ef4444; border-left-color: #ef4444;"><b>Error:</b> Connection lost. Retrying...</div>`;
+                loadingBubble.insertAdjacentHTML('beforebegin', errorDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
+        // File Share Handling Function
+        function handleFileShare(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const chatContainer = document.getElementById('chat-container');
+            const loadingBubble = document.getElementById('loadingBubble');
+            
+            let fileContentHTML = '';
+
+            // Agar image file hai toh uska chota thumbnail preview dikhao
+            if (file.type.startsWith('image/')) {
+                const imageUrl = URL.createObjectURL(file);
+                fileContentHTML = `<div class="file-shared"><img src="${imageUrl}"><br>📁 ${file.name}</div>`;
+            } else {
+                fileContentHTML = `<div class="file-shared">📁 Document: <b>${file.name}</b> (${(file.size/1024).toFixed(1)} KB)</div>`;
+            }
+
+            const userFileDiv = `<div class="message user"><b>You Shared a file:</b><br>${fileContentHTML}</div>`;
+            loadingBubble.insertAdjacentHTML('beforebegin', userFileDiv);
+            
+            loadingBubble.style.display = 'flex';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // File upload simulation response from Nobita AI
+            setTimeout(() => {
+                loadingBubble.style.display = 'none';
+                const aiReply = `Boss, mujhe aapki file "${file.name}" mil gayi hai! Main isko system me secure kar raha hoon. Iske baare me kya karna hai, bataiye?`;
+                
+                const aiFileDiv = `<div class="message ai"><b>Nobita AI:</b> ${aiReply}</div>`;
+                loadingBubble.insertAdjacentHTML('beforebegin', aiFileDiv);
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                speak(aiReply);
+            }, 1500);
+
+            // Reset input file value so same file can be uploaded again
+            event.target.value = '';
+        }
+
         function speak(text) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Purani voice clean karo
-                
-                // Clean punctuation for smooth mobile TTS reading
+                window.speechSynthesis.cancel(); 
                 const cleanText = text.replace(/[*#_\\-]/g, ''); 
-                
                 const utterance = new SpeechSynthesisUtterance(cleanText);
                 utterance.lang = 'hi-IN';
-                utterance.rate = 1.0;
+                utterance.rate = 1.1;
                 utterance.pitch = 1.0;
-                
-                // Android WebView force trigger
                 window.speechSynthesis.speak(utterance);
             }
         }
